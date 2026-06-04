@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoteVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0e0e0e;
+      --surface: #181818;
+      --surface2: #222222;
+      --border: #2e2e2e;
+      --accent: #c8f135;
+      --accent-dim: #a8cc20;
+      --text: #f0f0f0;
+      --text-muted: #888;
+      --danger: #ff5f5f;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; }
+    #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
+    .auth-card { width: 100%; max-width: 420px; }
+    .auth-logo { font-family: 'DM Serif Display', serif; font-size: 2.8rem; color: var(--accent); letter-spacing: -1px; margin-bottom: 0.25rem; }
+    .auth-tagline { color: var(--text-muted); margin-bottom: 2.5rem; font-family: 'DM Mono', monospace; font-size: 0.78rem; }
+    .tab-row { display: flex; margin-bottom: 2rem; border-bottom: 1px solid var(--border); }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500; padding: 0.6rem 1.2rem; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .auth-form { display: flex; flex-direction: column; gap: 1rem; }
+    label { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    input, textarea { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 300; padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s; width: 100%; }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 100px; }
+    .btn { background: var(--accent); border: none; border-radius: var(--radius); color: #0e0e0e; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500; padding: 0.75rem 1.5rem; transition: background 0.2s, transform 0.1s; }
+    .btn:hover { background: var(--accent-dim); }
+    .btn:active { transform: scale(0.98); }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+    .btn-ghost:hover { border-color: var(--text-muted); background: transparent; color: var(--text); }
+    .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .msg { font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: var(--radius); margin-top: 0.5rem; }
+    .msg-error { background: #3a1111; color: var(--danger); border: 1px solid #5a2222; }
+    .msg-ok { background: #1a2e0a; color: var(--accent); border: 1px solid #2e4a10; }
+    #app-screen { display: none; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+    .topbar-logo { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--accent); }
+    .topbar-user { display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+    .role-badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; padding: 0.2rem 0.6rem; font-size: 0.72rem; color: var(--text-muted); }
+    .role-badge.admin { color: var(--accent); border-color: var(--accent); }
+    .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 57px); }
+    .sidebar { border-right: 1px solid var(--border); padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-title { font-family: 'DM Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); padding: 0 0.5rem; }
+    #notes-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .note-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+    .note-item:hover { border-color: var(--accent); }
+    .note-item.active { border-color: var(--accent); background: var(--surface2); }
+    .note-item-title { font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .note-item-date { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .empty-state { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 2rem 1rem; font-family: 'DM Mono', monospace; }
+    .main { padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; max-width: 720px; }
+    .main-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .main-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--text); }
+    #note-view { display: none; flex-direction: column; gap: 1rem; }
+    #note-view.visible { display: flex; }
+    .note-actions { display: flex; gap: 0.5rem; align-items: center; }
+    .note-content-text { color: var(--text-muted); line-height: 1.7; white-space: pre-wrap; }
+    .note-meta { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 1rem; }
+    #edit-form { display: none; flex-direction: column; gap: 1rem; }
+    #edit-form.visible { display: flex; }
+    #new-note-panel { display: none; flex-direction: column; gap: 1rem; }
+    #new-note-panel.visible { display: flex; }
+    #admin-panel { display: none; flex-direction: column; gap: 1.5rem; }
+    #admin-panel.visible { display: flex; }
+    .admin-user-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+    .admin-user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+    .admin-user-name { font-weight: 500; }
+    .admin-user-email { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--text-muted); }
+    .admin-note-list { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem; }
+    .admin-note-entry { font-size: 0.82rem; color: var(--text-muted); font-family: 'DM Mono', monospace; padding: 0.25rem 0; border-bottom: 1px solid var(--border); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">NoteVault</div>
+      <div class="auth-tagline">// secure personal notes</div>
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="showTab('login')">Login</button>
+        <button class="tab-btn" onclick="showTab('register')">Register</button>
+      </div>
+      <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+        <label>Username <input type="text" id="login-username" autocomplete="username" required /></label>
+        <label>Password <input type="password" id="login-password" autocomplete="current-password" required /></label>
+        <button type="submit" class="btn">Login</button>
+        <div id="login-msg"></div>
+      </form>
+      <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+        <label>Username <input type="text" id="reg-username" autocomplete="username" required /></label>
+        <label>Email <input type="email" id="reg-email" autocomplete="email" required /></label>
+        <label>Password <input type="password" id="reg-password" autocomplete="new-password" required /></label>
+        <button type="submit" class="btn">Create account</button>
+        <div id="reg-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- APP SCREEN -->
+  <div id="app-screen">
+    <div class="topbar">
+      <div class="topbar-logo">NoteVault</div>
+      <div class="topbar-user">
+        <span id="topbar-username"></span>
+        <span id="topbar-role" class="role-badge"></span>
+        <button class="btn btn-ghost" style="padding:0.4rem 0.9rem;font-size:0.82rem" onclick="logout()">Logout</button>
+      </div>
+    </div>
+    <div class="layout">
+      <div class="sidebar">
+        <div class="sidebar-title">My Notes</div>
+        <button class="btn" style="width:100%" onclick="showNewNote()">+ New note</button>
+        <div id="notes-list"><div class="empty-state">no notes yet</div></div>
+        <div id="admin-btn-wrap" class="hidden" style="margin-top:auto">
+          <button class="btn btn-ghost" style="width:100%;font-size:0.82rem" onclick="showAdminPanel()">Admin panel</button>
+        </div>
+      </div>
+      <div class="main">
+        <div id="welcome-msg">
+          <div class="main-header"><div class="main-title">Good to see you.</div></div>
+          <p style="color:var(--text-muted);line-height:1.6">Select a note from the sidebar, or create a new one.</p>
+        </div>
+        <div id="new-note-panel">
+          <div class="main-header">
+            <div class="main-title">New note</div>
+            <button class="btn btn-ghost" onclick="showWelcome()">Cancel</button>
+          </div>
+          <form onsubmit="handleCreateNote(event)" style="display:flex;flex-direction:column;gap:1rem">
+            <label>Title <input type="text" id="new-title" required /></label>
+            <label>Content <textarea id="new-content" rows="8" required></textarea></label>
+            <div><button type="submit" class="btn">Save note</button></div>
+            <div id="new-note-msg"></div>
+          </form>
+        </div>
+        <div id="note-view">
+          <div id="note-display">
+            <div class="main-header">
+              <div class="main-title" id="view-title"></div>
+              <div class="note-actions">
+                <button class="btn btn-ghost" style="font-size:0.82rem" onclick="enterEditMode()">Edit</button>
+                <button class="btn btn-danger" onclick="handleDeleteNote()">Delete</button>
+              </div>
+            </div>
+            <div id="view-content" class="note-content-text"></div>
+            <div class="note-meta" id="view-meta"></div>
+          </div>
+          <div id="edit-form">
+            <div class="main-header">
+              <div class="main-title">Edit note</div>
+              <button class="btn btn-ghost" onclick="exitEditMode()">Cancel</button>
+            </div>
+            <form onsubmit="handleUpdateNote(event)" style="display:flex;flex-direction:column;gap:1rem">
+              <label>Title <input type="text" id="edit-title" required /></label>
+              <label>Content <textarea id="edit-content" rows="8" required></textarea></label>
+              <div><button type="submit" class="btn">Save changes</button></div>
+              <div id="edit-msg"></div>
+            </form>
+          </div>
+        </div>
+        <div id="admin-panel">
+          <div class="main-header">
+            <div class="main-title">Admin panel</div>
+            <button class="btn btn-ghost" onclick="showWelcome()">Close</button>
+          </div>
+          <div id="admin-users-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

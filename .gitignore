@@ -1,0 +1,7 @@
+.DS_Store
+app/node_modules/
+app/.env
+app/notes.db
+app/*.db
+app/*.db-shm
+app/*.db-wal
